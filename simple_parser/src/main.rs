@@ -4,7 +4,8 @@ enum Operator {
     NotEqual,
     SimilarTo,
     StartsWith,
-    EndsWith
+    EndsWith,
+    None
 }
 
 fn levenshtein_distance(s1: &str, s2: &str) -> usize {
@@ -50,7 +51,7 @@ impl QueryParser {
             "~=" => Operator::SimilarTo,
             "^=" => Operator::StartsWith,
             "$=" => Operator::EndsWith,
-            _ => Operator::Equal,
+            _ => Operator::None,
         }
     }
 
@@ -67,18 +68,18 @@ impl QueryParser {
         match length_of_parts {
             2 => {
                 first_value = match parts.next() {
-                    Some(s) => s,
+                    Some(s) => s.trim(),
                     None => ""
                 };
         
                 second_value = match parts.next() {
-                    Some(s) => s,
+                    Some(s) => s.trim(),
                     None => ""
                 };
             },
             3 => {
                 first_value = match parts.next() {
-                    Some(s) => s,
+                    Some(s) => s.trim(),
                     None => ""
                 };
         
@@ -88,12 +89,11 @@ impl QueryParser {
                 };
         
                 second_value = match parts.next() {
-                    Some(s) => s,
+                    Some(s) => s.trim(),
                     None => ""
                 };
             },
             _ => {
-                println!("Não reconheci nenhuma expressão válida!");
                 return false;
             }
         }
@@ -104,6 +104,7 @@ impl QueryParser {
             Operator::EndsWith => first_value.ends_with(second_value),
             Operator::StartsWith => first_value.starts_with(second_value),
             Operator::SimilarTo => are_strings_similar(first_value, second_value, 5),
+            Operator::None => false
         };
 
         return expression_result;
@@ -111,21 +112,23 @@ impl QueryParser {
 }
 
 fn main() {
-    let similar_expr_false = QueryParser.parse_query(String::from("odylon ~= reni").as_str());
-    let similar_expr_true = QueryParser.parse_query(String::from("renilson ~= reni").as_str());
-    
-    let equal_operation_without_operator_true = QueryParser.parse_query(String::from("reni reni").as_str());
-    let equal_operation_without_operator_false = QueryParser.parse_query(String::from("renilson reni").as_str());
+    loop {
+        println!();
+        let mut expression = String::new();
+        println!("Digite alguma expressão: ");
 
-    let invalid_expression = QueryParser.parse_query("abc = edf = fd");
-    
+        std::io::stdin()
+            .read_line(&mut expression)
+            .expect("Você precisa digitar uma expressão para ser possível avaliar");
 
-    assert_eq!(similar_expr_false, false);
-    assert_eq!(similar_expr_true, true);
-
-
-    assert_eq!(equal_operation_without_operator_false, false);
-    assert_eq!(equal_operation_without_operator_true, true);
-
-    assert_eq!(invalid_expression, false);
+        match expression.contains("sair") {
+            true => {
+                break;
+            },
+            false => {
+                let similar_expr = QueryParser.parse_query(&expression);
+                println!("{:?}", similar_expr);
+            }
+        }
+    }
 }
